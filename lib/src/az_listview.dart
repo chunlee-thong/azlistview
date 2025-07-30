@@ -25,6 +25,7 @@ class AzListView extends StatefulWidget {
     this.indexBarHeight,
     this.indexBarItemHeight = kIndexBarItemHeight,
     this.hapticFeedback = false,
+    this.showIndexbar = true,
     this.indexBarAlignment = Alignment.centerRight,
     this.indexBarMargin,
     this.indexBarOptions = const IndexBarOptions(),
@@ -94,7 +95,9 @@ class AzListView extends StatefulWidget {
   /// IndexBar options.
   final IndexBarOptions indexBarOptions;
 
-  final void Function(BuildContext context, String tag)? indexTapListener;
+  final bool showIndexbar;
+
+  final void Function(BuildContext context, String tag, bool success)? indexTapListener;
 
   @override
   _AzListViewState createState() => _AzListViewState();
@@ -143,10 +146,10 @@ class _AzListViewState extends State<AzListView> {
     return -1;
   }
 
-  bool _scrollTopIndex(String tag) {
+  bool _scrollToIndex(String tag) {
     int index = _getIndex(tag);
     if (index != -1) {
-      itemScrollController.jumpTo(index: index);
+      itemScrollController.scrollTo(index: index, duration: Durations.short4);
       return true;
     }
     return false;
@@ -157,10 +160,8 @@ class _AzListViewState extends State<AzListView> {
     String tag = details.tag!;
     if (details.action == IndexBarDragDetails.actionDown || details.action == IndexBarDragDetails.actionUpdate) {
       selectTag = tag;
-      bool scrollSuccess = _scrollTopIndex(tag);
-      if (scrollSuccess) {
-        widget.indexTapListener?.call(context, tag);
-      }
+      bool scrollSuccess = _scrollToIndex(tag);
+      widget.indexTapListener?.call(context, tag, scrollSuccess);
     }
   }
 
@@ -195,20 +196,21 @@ class _AzListViewState extends State<AzListView> {
           padding: widget.padding,
           physics: widget.physics,
         ),
-        Align(
-          alignment: widget.indexBarAlignment,
-          child: IndexBar(
-            data: widget.indexBarData,
-            width: widget.indexBarWidth,
-            height: widget.indexBarHeight,
-            itemHeight: widget.indexBarItemHeight,
-            margin: widget.indexBarMargin,
-            indexHintBuilder: widget.indexHintBuilder,
-            indexBarDragListener: dragListener,
-            options: widget.indexBarOptions,
-            controller: indexBarController,
+        if (widget.showIndexbar)
+          Align(
+            alignment: widget.indexBarAlignment,
+            child: IndexBar(
+              data: widget.indexBarData,
+              width: widget.indexBarWidth,
+              height: widget.indexBarHeight,
+              itemHeight: widget.indexBarItemHeight,
+              margin: widget.indexBarMargin,
+              indexHintBuilder: widget.indexHintBuilder,
+              indexBarDragListener: dragListener,
+              options: widget.indexBarOptions,
+              controller: indexBarController,
+            ),
           ),
-        ),
       ],
     );
   }
